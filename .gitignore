@@ -38,8 +38,7 @@ outputs/
 ~$*.xls
 cache/
 
-# Old data folder (can be removed once locked files are closed)
-data/
+
 
 # Benchmark and test results
 *_benchmark.py

@@ -103,14 +103,12 @@ STANDARD_PROPERTY_TYPES = [
 ]
 
 
-def get_mapped_property_type(detected_type: str, auto_learn: bool = True) -> str:
+def get_mapped_property_type(detected_type: str) -> str:
     """
     Map een gedetecteerd room type naar een gestandaardiseerd Airbnb type
 
     Args:
         detected_type: Het gedetecteerde room type string
-        auto_learn: Of nieuwe types automatisch geleerd moeten worden
-
     Returns:
         Gestandaardiseerd Airbnb property type
     """
@@ -122,15 +120,6 @@ def get_mapped_property_type(detected_type: str, auto_learn: bool = True) -> str
     for key, value in ROOM_TYPE_MAPPING.items():
         if detected_type.lower() == key.lower():
             return value
-
-    # Als auto-learning enabled, gebruik de learner
-    if auto_learn:
-        try:
-            from src.config.room_type_auto_learner import auto_learn_room_type
-            return auto_learn_room_type(detected_type, ROOM_TYPE_MAPPING)
-        except Exception as e:
-            import logging
-            logging.warning(f"Auto-learning failed: {e}, falling back to manual mapping")
 
     # Partial match op lowercase
     detected_lower = detected_type.lower()

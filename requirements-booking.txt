@@ -1,0 +1,18 @@
+# Booking.com Scraper Dependencies
+# Install with: pip install -r requirements-booking.txt
+
+# Method 1: Simplest (try this first)
+booking-scraper>=0.1.0
+
+# Method 2: Direct scraping with BeautifulSoup
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+requests>=2.31.0
+fake-useragent>=1.4.0
+
+# Method 3: Most robust (JavaScript rendering)
+playwright>=1.40.0
+
+# After installing playwright, also run:
+# playwright install chromium
+

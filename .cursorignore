@@ -1,0 +1,37 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# Data files
+data/
+archive/
+benchmark_results/
+*.xlsx
+*.csv
+~$*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Large binary files
+*.gpkg
+
+# OS
+.DS_Store
+Thumbs.db
+

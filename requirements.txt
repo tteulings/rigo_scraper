@@ -1,0 +1,29 @@
+pyairbnb>=0.1.0
+pandas>=1.5.0
+geopandas>=0.12.0
+folium>=0.14.0
+shapely>=2.0.0
+openpyxl>=3.0.0
+matplotlib>=3.5.0
+tqdm>=4.65.0
+pyyaml>=6.0.0
+pyarrow>=10.0.0
+
+# Streamlit Dashboard
+streamlit>=1.28.0
+streamlit-folium>=0.15.0
+plotly>=5.17.0
+
+# Jupyter Notebook Widgets
+ipywidgets>=8.0.0
+
+# Booking.com Scraping (Optional)
+# Install these for Booking.com scraper support:
+# pip install -r requirements-booking.txt
+# Or individually:
+# booking-scraper>=0.1.0          # Simplest option
+# beautifulsoup4>=4.12.0          # HTML parsing
+# lxml>=4.9.0                     # Fast XML/HTML parser
+# playwright>=1.40.0              # JavaScript rendering (most robust)
+# fake-useragent>=1.4.0           # User-agent rotation
+# requests>=2.31.0                # HTTP requests (usually already installed)

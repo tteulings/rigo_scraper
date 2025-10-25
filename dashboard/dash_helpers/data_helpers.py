@@ -8,7 +8,9 @@ from pathlib import Path
 from typing import List, Dict, Any, Union
 
 # Import project paths from parent
-PROJECT_ROOT = Path(__file__).parent.parent.parent  # dashboard/dash_helpers -> dashboard -> project_root
+PROJECT_ROOT = Path(
+    __file__
+).parent.parent.parent  # dashboard/dash_helpers -> dashboard -> project_root
 GPKG_PATH = str(PROJECT_ROOT / "assets" / "BestuurlijkeGebieden_2025.gpkg")
 DATA_DIR = str(PROJECT_ROOT / "outputs" / "data")
 
@@ -166,39 +168,6 @@ def load_run_preview(run: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def load_run_details(run: Dict[str, Any]) -> Dict[str, Any]:
-    """Load full details for a run (for detail page)"""
-    try:
-        # Use Parquet-first loading
-        df_all = load_run_data(run["run_path"])
-    except Exception as e:
-        print(f"Error loading run data: {e}")
-        return {"df_all": pd.DataFrame(), "config": {}}
-
-    config = {}
-    config_path = os.path.join(run["run_path"], "config.json")
-    if os.path.exists(config_path):
-        try:
-            with open(config_path, "r", encoding="utf-8") as f:
-                config = json.load(f)
-        except Exception:
-            pass
-
-    # Find Excel path for download link
-    excel_files = (
-        [
-            f
-            for f in os.listdir(run["run_path"])
-            if f.endswith(".xlsx") and not f.startswith("~$")
-        ]
-        if os.path.exists(run["run_path"])
-        else []
-    )
-    excel_path = os.path.join(run["run_path"], excel_files[0]) if excel_files else None
-
-    return {"df_all": df_all, "config": config, "excel_path": excel_path}
-
-
 # Import get_all_runs from run_tracker or provide fallback
 try:
     from src.core.run_tracker import get_all_runs
@@ -248,4 +217,3 @@ except Exception:
                     )
         runs.sort(key=lambda x: x.get("created_at", ""), reverse=True)
         return runs
-

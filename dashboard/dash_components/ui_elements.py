@@ -38,6 +38,8 @@ def source_chip(source: str, show_label: bool = True) -> html.Div:
         [
             html.Img(
                 src=f"/assets/{logo_file}" if logo_file else "",
+                alt=f"{source} logo",
+                title=f"{source}",
                 style={
                     "height": "16px",
                     "width": "auto",

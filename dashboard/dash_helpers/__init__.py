@@ -4,7 +4,6 @@ from .data_helpers import (
     load_gemeenten_list,
     load_run_data,
     load_run_preview,
-    load_run_details,
     get_all_runs,
 )
 from .map_helpers import create_gemeente_selection_map_html
@@ -19,7 +18,6 @@ __all__ = [
     "load_gemeenten_list",
     "load_run_data",
     "load_run_preview",
-    "load_run_details",
     "get_all_runs",
     "create_gemeente_selection_map_html",
     "create_timeline_figure",

@@ -1,10 +1,11 @@
 """Run Detail Page"""
 
 import os
+import json
 from typing import Dict, Any
 from dash import html, dcc
 import dash_bootstrap_components as dbc
-from dashboard.dash_helpers import load_run_data, add_source_to_run
+from dashboard.dash_helpers import add_source_to_run
 from dashboard.dash_components import create_sidebar, source_chip
 
 
@@ -45,23 +46,6 @@ def create_run_detail_page(run: Dict[str, Any]):
         period_end = config.get("period_end", "")
         if period_start and period_end:
             period_str = f"{period_start} tot {period_end}"
-
-    # Pre-load Excel data in background to cache it
-    run_path = run.get("run_path")
-    data_cache_key = f"{run_path}_data"
-    if data_cache_key not in app.run_data_cache:
-        import threading
-
-        def load_data_async():
-            try:
-                df = load_run_data(run_path)
-                app.run_data_cache[data_cache_key] = df
-            except Exception:
-                pass
-
-        # Start loading in background thread
-        thread = threading.Thread(target=load_data_async, daemon=True)
-        thread.start()
 
     # Check if run is still active (running/failed) for auto-refresh
     run_status = run.get("status", "completed")

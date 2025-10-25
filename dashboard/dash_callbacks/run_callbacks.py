@@ -1536,20 +1536,46 @@ def register_run_callbacks(app, DATA_DIR):
         df["scan_checkin_date"] = pd.to_datetime(df["scan_checkin"]).dt.date
         df_filtered = df[df["scan_checkin_date"].isin(selected_dates)]
 
+        # Prepare map data (unique listings with availability metrics)
+        if not df_filtered.empty:
+            df_map = df_filtered.drop_duplicates("room_id").copy()
+            
+            # Add required columns if missing
+            for col, default in [
+                ("availability_rate", 100.0),
+                ("days_available", 1),
+                ("total_days", 1),
+            ]:
+                if col not in df_map.columns:
+                    df_map[col] = default
+        else:
+            df_map = df_filtered
+
         # Generate new map with filtered data
         try:
             from src.visualization.map_creator import create_map
+            import geopandas as gpd
+            from pathlib import Path
 
-            if create_map and not df_filtered.empty:
+            if create_map and not df_map.empty:
                 # Load config
                 config_path = os.path.join(run_path, "config.json")
                 config = {}
+                gemeenten = []
                 if os.path.exists(config_path):
                     with open(config_path, "r") as f:
                         config = json.load(f)
+                        gemeenten = config.get("gemeenten", [])
 
-                # Create the map with filtered data
-                map_obj = create_map(df_filtered, config)
+                # Load gemeente boundaries
+                PROJECT_ROOT = Path(__file__).parent.parent.parent
+                GPKG_PATH = str(
+                    PROJECT_ROOT / "assets" / "BestuurlijkeGebieden_2025.gpkg"
+                )
+                gdf_gemeenten = gpd.read_file(GPKG_PATH, layer="gemeentegebied")
+
+                # Create the map with filtered data (use df_map with required columns)
+                map_obj = create_map(df_map, gdf_gemeenten, gemeenten)
                 if map_obj:
                     return map_obj.get_root().render()
         except Exception as e:

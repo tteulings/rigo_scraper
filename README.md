@@ -2,31 +2,43 @@
 
 Eenvoudige, modulaire tool om Airbnb listings per gemeente te scrapen met beschikbaarheidsanalyse.
 
-## 🎉 NEW: Streamlit Dashboard (NEDERLANDS!)
+## 🎉 NEW: Web Dashboards (NEDERLANDS!)
 
-**Moderne, Nederlandse web interface voor het bekijken en maken van scraping runs!**
+**Kies uit twee moderne, Nederlandse web interfaces voor het bekijken en maken van scraping runs!**
+
+### 🎨 NiceGUI Dashboard (NIEUW!)
+Modern, responsive dashboard met geavanceerde UI componenten.
 
 ```bash
-# Installeer dependencies (gebeurt automatisch)
-pip install -r requirements.txt
-
-# Start de dashboard
-python run_dashboard.py
+# Start NiceGUI dashboard
+python run_nicegui_dashboard.py
+# Browser opent op http://localhost:8080
 ```
 
-### ✨ Nieuwe Features:
-- 🇳🇱 **Volledig Nederlands** - alle tekst en interface in het Nederlands
-- 📊 **Resultaten eerst** - open direct op resultaten pagina met historische runs
-- 🗺️ **Gemeente kaart** - interactieve kaart toont alle gemeenten bij nieuwe run
-- 📅 **3 weergave modi** - bekijk beschikbaarheid totaal, op datum, of per bereik
-- 📋 **Side-by-side layout** - runs selectie naast resultaten
+### 📊 Streamlit Dashboard
+Data science gerichte dashboard met snelle prototyping.
 
-👉 **Zie [DASHBOARD_NL_README.md](DASHBOARD_NL_README.md) voor volledige dashboard documentatie!**
+```bash
+# Start Streamlit dashboard
+python run_dashboard.py
+# Browser opent op http://localhost:8501
+```
+
+### ✨ Dashboard Features:
+- 🇳🇱 **Volledig Nederlands** - alle tekst en interface in het Nederlands
+- 📊 **Resultaten overzicht** - bekijk historische runs met filtering
+- 🗺️ **Gemeente kaart** - interactieve kaart voor gemeente selectie
+- 📅 **Flexibele planning** - interval, weekdagen, of maandelijks
+- 📋 **Data export** - download resultaten als Excel
+- 🔐 **Login bescherming** - beveiligde toegang
+
+👉 **Zie [NICEGUI_README.md](NICEGUI_README.md) voor NiceGUI documentatie!**  
+👉 **Zie [DASHBOARD_NL_README.md](DASHBOARD_NL_README.md) voor Streamlit documentatie!**
 
 ## ✨ Features
 
-- ✅ **Streamlit Dashboard** - moderne web interface voor configuratie en visualisatie
-- ✅ **⚡ Parallel scraping** - automatisch 5x sneller met multi-threading (NEW!)
+- ✅ **NiceGUI & Streamlit Dashboards** - keuze uit twee moderne web interfaces (NEW!)
+- ✅ **⚡ Parallel scraping** - automatisch 5x sneller met multi-threading
 - ✅ **⏱️ Gedetailleerde timing** - zie exact waar je tijd naartoe gaat (NEW!)
 - ✅ **💾 Auto-checkpoints** - tussentijds opslaan elke 10 scans (NEW!)
 - ✅ **Parallelle API calls** met automatische retry logic voor maximale dekking
@@ -46,10 +58,12 @@ python run_dashboard.py
 
 ```
 airbnb/
-├── streamlit_dashboard.py        # 🌟 Streamlit web dashboard (NEW!)
-├── run_dashboard.py              # Dashboard launcher script (NEW!)
-├── DASHBOARD_README.md           # Dashboard documentatie (NEW!)
-├── DASHBOARD_QUICKSTART.md       # Snelle start guide (NEW!)
+├── nicegui_dashboard_nl.py       # 🎨 NiceGUI web dashboard (NEW!)
+├── run_nicegui_dashboard.py      # NiceGUI launcher script (NEW!)
+├── NICEGUI_README.md             # NiceGUI documentatie (NEW!)
+├── streamlit_dashboard_nl.py     # 📊 Streamlit web dashboard
+├── run_dashboard.py              # Streamlit launcher script
+├── DASHBOARD_NL_README.md        # Streamlit documentatie
 ├── bnb_scraper.ipynb             # Hoofdnotebook (configuratie + visualisatie)
 ├── requirements.txt              # Python dependencies (updated!)
 ├── README.md                     # Deze file
@@ -82,17 +96,24 @@ airbnb/
 
 ## 🚀 Quick Start
 
-### Optie A: Streamlit Dashboard (Aanbevolen!) 🌟
+### Optie A: Web Dashboard (Aanbevolen!) 🌟
+
+Kies je favoriete dashboard interface:
 
 ```bash
 # 1. Installeer dependencies
 pip install -r requirements.txt
 
-# 2. Start de dashboard
-python run_dashboard.py
-# Of: streamlit run streamlit_dashboard_nl.py
+# 2a. Start NiceGUI dashboard (Modern UI)
+python run_nicegui_dashboard.py
+# Browser opent op http://localhost:8080
 
-# 3. Configureer via de web interface en start scraping!
+# OF 2b. Start Streamlit dashboard (Data Science UI)
+python run_dashboard.py
+# Browser opent op http://localhost:8501
+
+# 3. Login met wachtwoord: Ruijterkade
+# 4. Configureer via de web interface en start scraping!
 ```
 
 ### ⚠️ Rate Limit Bescherming

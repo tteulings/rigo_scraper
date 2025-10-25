@@ -120,3 +120,7 @@ def get_current_mappings(config_file: str = "src/config/room_type_config.py") ->
         return {}
 
 
+
+
+
+

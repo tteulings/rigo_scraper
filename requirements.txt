@@ -14,6 +14,10 @@ streamlit>=1.28.0
 streamlit-folium>=0.15.0
 plotly>=5.17.0
 
+# Dash Dashboard
+dash>=2.17.0
+dash-bootstrap-components>=1.5.0
+
 # Jupyter Notebook Widgets
 ipywidgets>=8.0.0
 

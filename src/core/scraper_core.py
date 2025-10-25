@@ -559,13 +559,13 @@ def scrape_all(
                 if tracker is not None:
                     # Get current unique listings count
                     df_combined = pd.concat(all_runs, ignore_index=True)
-                    unique_listings = (
+                    unique_listings_count = (
                         df_combined["room_id"].nunique() if not df_combined.empty else 0
                     )
                     tracker.update_progress(completed_scans=completed_scans)
                     # Also update total_listings in status
                     status = tracker._load_status()
-                    status["progress"]["total_listings"] = unique_listings
+                    status["progress"]["total_listings"] = unique_listings_count
                     tracker._save_status(status)
 
                 # Aggregate timings
@@ -646,6 +646,23 @@ def scrape_all(
                     f"🏠{len(unique_listings):,} {new_indicator} │ "
                     f"📊{total_records:,} │ "
                     f"⏱️{this_scan_time:.1f}s (Ø{avg_time_per_scan:.1f}s)"
+                )
+
+                # Log progress to file (for dashboard display)
+                progress_pct = (
+                    (completed_scans / total_scans * 100) if total_scans > 0 else 0
+                )
+                elapsed_time = time.time() - start_time
+                avg_per_scan = (
+                    elapsed_time / completed_scans if completed_scans > 0 else 0
+                )
+                remaining_scans = total_scans - completed_scans
+                estimated_remaining = avg_per_scan * remaining_scans
+
+                logger.info(
+                    f"⚡ {status_emoji} {completed_scans}/{total_scans} ({progress_pct:.0f}%) │ "
+                    f"🏠 {len(unique_listings):,} listings │ "
+                    f"⏱️ {elapsed_time / 60:.1f}m / ~{(elapsed_time + estimated_remaining) / 60:.0f}m"
                 )
 
                 # Checkpoint save every 10 tasks

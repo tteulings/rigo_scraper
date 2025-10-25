@@ -22,6 +22,7 @@ from src.core.scraper_core import generate_scan_combinations
 from src.core.room_classifier import extract_room_type
 from src.utils import extract_beds_info
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
 import time
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -103,9 +104,11 @@ def make_api_call(call_num, check_in, check_out, maxy, maxx, miny, minx):
         return (call_num, None, e)
 
 
-def scrape_one(gm, check_in, check_out, nights, guests, scan_id):
+def scrape_one(gm, check_in, check_out, nights, guests, scan_id, pbar=None):
     """Scrape één gemeente met parallelle API calls voor maximale dekking"""
-    print(f" {gm:12s} {check_in}→{check_out} {nights}n/{guests}g", end="")
+    # Update progress bar description
+    if pbar:
+        pbar.set_postfix_str(f"{gm} {check_in}→{check_out} {nights}n/{guests}g")
 
     # Laad gemeentegrenzen
     gdf_all = (
@@ -115,19 +118,16 @@ def scrape_one(gm, check_in, check_out, nights, guests, scan_id):
     )
     sel = gdf_all[gdf_all["naam"] == gm]
     if sel.empty:
-        print(" ⚠️  Geen grens")
         return pd.DataFrame()
 
     # Haal bounding box op
     minx, miny, maxx, maxy = sel.total_bounds
 
-    # ✨ PARALLELLE API CALLS - elk retourneert verschillende willekeurige subset
+    # Parallelle API calls - elk retourneert verschillende willekeurige subset
     all_raw_results = []
     all_room_ids = set()
 
-    # Voer API calls parallel uit
     with ThreadPoolExecutor(max_workers=NUM_REPEAT_CALLS) as executor:
-        # Dien alle calls tegelijk in
         futures = [
             executor.submit(
                 make_api_call, i, check_in, check_out, maxy, maxx, miny, minx
@@ -135,27 +135,15 @@ def scrape_one(gm, check_in, check_out, nights, guests, scan_id):
             for i in range(1, NUM_REPEAT_CALLS + 1)
         ]
 
-        # Verzamel resultaten zodra ze klaar zijn
         for future in as_completed(futures):
             call_num, raw, error = future.result()
-
             if error:
                 continue
-
             if raw:
-                # Houd room IDs bij en verzamel resultaten
                 new_ids = {rec.get("room_id") for rec in raw if rec.get("room_id")}
                 all_room_ids.update(new_ids)
                 all_raw_results.extend(raw)
 
-    if not all_raw_results:
-        print(" → 0 verhuurobjecten")
-        return pd.DataFrame()
-
-    # Toon resultaten (eenvoudige output met opmaak)
-    print(f" → {len(all_room_ids):3d} verhuurobjecten")
-
-    # Verwerk alle resultaten
     if not all_raw_results:
         return pd.DataFrame()
 
@@ -164,48 +152,46 @@ def scrape_one(gm, check_in, check_out, nights, guests, scan_id):
         coords = rec.get("coordinates", {})
         lat = coords.get("latitude")
         lon = coords.get("longitud") or coords.get("longitude")
-
         if not lat or not lon:
             continue
 
-        # Haal prijs op
+        # Extract price
         price_data = rec.get("price", {})
         price_unit = price_data.get("unit", {})
         price = price_unit.get("amount", 0) if price_unit else 0
 
-        # Haal beoordeling op
+        # Extract rating
         rating_data = rec.get("rating", {})
-        rating = rating_data.get("value", None) if rating_data else None
-        reviews_count = rating_data.get("reviewCount", None) if rating_data else None
+        rating = rating_data.get("value") if rating_data else None
+        reviews_count = rating_data.get("reviewCount") if rating_data else None
 
-        # Converteer reviews_count naar int als het een string is
+        # Convert reviews_count to int if string
         if reviews_count:
             try:
                 reviews_count = int(reviews_count)
             except (ValueError, TypeError):
                 reviews_count = None
 
-        # Extraheer bed/slaapkamer info
+        # Extract bedroom/bed info
         bedrooms, beds = extract_beds_info(rec)
 
-        # Genereer verhuurobject URL
+        # Generate listing URL
         room_id = rec.get("room_id")
         listing_url = f"https://www.airbnb.nl/rooms/{room_id}" if room_id else None
 
-        # Detecteer type en koppel aan Airbnb standaard
+        # Detect type and map to Airbnb standard
         detected_type = extract_room_type(rec)
         airbnb_property_type = get_mapped_property_type(detected_type)
-        airbnb_room_type = detected_type  # Behoud originele detected type
 
         rows.append(
             {
                 "gemeente": gm,
-                "room_id": rec.get("room_id"),
+                "room_id": room_id,
                 "listing_url": listing_url,
                 "listing_title": rec.get("title", "") or rec.get("name", ""),
-                "room_type_detected": detected_type,  # Specifiek type
-                "room_type_airbnb": airbnb_room_type,  # Airbnb standaard
-                "property_type_airbnb": airbnb_property_type,  # Accommodatie subtype
+                "room_type_detected": detected_type,
+                "room_type_airbnb": detected_type,
+                "property_type_airbnb": airbnb_property_type,
                 "bedrooms": bedrooms,
                 "beds": beds,
                 "price": price,
@@ -225,20 +211,19 @@ def scrape_one(gm, check_in, check_out, nights, guests, scan_id):
     if not rows:
         return pd.DataFrame()
 
+    # Deduplicate and filter spatially
     df = pd.DataFrame(rows)
-
-    # DEDUPLICEER op room_id
     df_dedup = df.drop_duplicates("room_id")
 
-    # Ruimtelijk filter
+    # Spatial filter
     gdf_pts = gpd.GeoDataFrame(
         df_dedup,
-        geometry=[Point(xy) for xy in zip(df_dedup.longitude, df_dedup.latitude)],
+        geometry=[
+            Point(lon, lat) for lon, lat in zip(df_dedup.longitude, df_dedup.latitude)
+        ],
         crs="EPSG:4326",
     )
-    inside = gdf_pts[gdf_pts.within(sel.geometry.union_all())].copy()
-
-    return inside
+    return gdf_pts[gdf_pts.within(sel.geometry.union_all())].copy()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -279,30 +264,14 @@ if __name__ == "__main__":
     print("=" * 80)
 
     all_runs = []
-    current_scan = 0
     start_time = time.time()
 
-    for ci, co, nights, guests, scan_id in scan_combinations:
-        for gm in gemeenten:
-            current_scan += 1
-
-            # Toon voortgang met geschatte resterende tijd
-            if current_scan > 1:
-                elapsed = time.time() - start_time
-                avg_time_per_scan = elapsed / (current_scan - 1)
-                remaining_scans = total_scans - current_scan
-                eta_seconds = remaining_scans * avg_time_per_scan
-                eta_minutes = eta_seconds / 60
-                progress_pct = (current_scan / total_scans) * 100
-                print(
-                    f"\n[{current_scan:3d}/{total_scans} {progress_pct:5.1f}% | ETA {eta_minutes:4.1f}m]",
-                    end="",
-                )
-            else:
-                print(f"\n[{current_scan:3d}/{total_scans}]", end="")
-
-            df_run = scrape_one(gm, ci, co, nights, guests, scan_id)
-            all_runs.append(df_run)
+    with tqdm(total=total_scans, desc="Scraping", unit="scan") as pbar:
+        for ci, co, nights, guests, scan_id in scan_combinations:
+            for gm in gemeenten:
+                df_run = scrape_one(gm, ci, co, nights, guests, scan_id, pbar)
+                all_runs.append(df_run)
+                pbar.update(1)
 
     # Combineer alle runs
     total_duration = time.time() - start_time

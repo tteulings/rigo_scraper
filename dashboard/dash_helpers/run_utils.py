@@ -15,17 +15,8 @@ def detect_run_source(run: Dict[str, Any]) -> str:
     Returns:
         Data source type (airbnb, funda, etc.)
     """
-    # Check run_name for source indicators
-    run_name = run.get("run_name", "").lower()
-
-    if "funda" in run_name:
-        return DataSource.FUNDA.value
-    elif "booking" in run_name:
-        return DataSource.BOOKING.value
-    elif "airbnb" in run_name or "bnb" in run_name:
-        return DataSource.AIRBNB.value
-
-    # Check config for source
+    # ONLY check config.json for explicit source field
+    # This prevents misdetection based on gemeente names
     run_path = run.get("run_path")
     if run_path:
         config_path = os.path.join(run_path, "config.json")
@@ -40,7 +31,8 @@ def detect_run_source(run: Dict[str, Any]) -> str:
             except Exception:
                 pass
 
-    # Default to airbnb if can't determine
+    # Default to airbnb for all existing runs
+    # (new runs will have source in config.json)
     return DataSource.AIRBNB.value
 
 
